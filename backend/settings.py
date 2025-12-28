@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 import dj_database_url
+from decouple import config
 
 # Load environment variables
 load_dotenv()
@@ -19,7 +20,7 @@ DEBUG = ENV != "production"
 # ------------------------------------------------------------------------------
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-insecure-key")
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = config("ALLOWED_HOSTS").split(",")
 
 CSRF_TRUSTED_ORIGINS = [
     "https://*.onrender.com",
@@ -111,24 +112,36 @@ TEMPLATES = [
 # DATABASE
 # ------------------------------------------------------------------------------
 
-if os.getenv("DATABASE_URL"):
-    DATABASES = {
-        "default": dj_database_url.config(
-            conn_max_age=600,
-            ssl_require=True,
-        )
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME', 'travellerclicksfinal1'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'Jobs@9922'),
+        'HOST': os.getenv('DB_HOST', 'backend-82om.onrender.com'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'travellerclicksfinal1',
-            'USER': 'postgres',
-            'PASSWORD': 'Jobs@9922',
-            'HOST': 'https://backend-82om.onrender.com',
-            'PORT': '5432',
-        }
-    }
+}
+DATABASES["default"]= dj_database_url.parse(config('DATABASE_URL'))
+
+# if os.getenv("DATABASE_URL"):
+#     DATABASES = {
+#         "default": dj_database_url.config(
+#             conn_max_age=600,
+#             ssl_require=True,
+#         )
+#     }
+# else:
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.postgresql',
+#             'NAME': 'travellerclicksfinal1',
+#             'USER': 'postgres',
+#             'PASSWORD': 'Jobs@9922',
+#             'HOST': 'https://backend-82om.onrender.com',
+#             'PORT': '5432',
+#         }
+#     }
 
 # ------------------------------------------------------------------------------
 # CACHE
