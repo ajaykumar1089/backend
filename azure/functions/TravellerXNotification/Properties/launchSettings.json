@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "TravellerXNotification": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7080"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "httpPort": 32307,
+      "useSSL": false
+    }
+  }
+}

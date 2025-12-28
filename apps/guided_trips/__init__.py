@@ -1,0 +1,1 @@
+# This file marks the guided_trips directory as a Python package.
