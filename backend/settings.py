@@ -125,7 +125,7 @@ else:
             'NAME': 'travellerclicksfinal1',
             'USER': 'postgres',
             'PASSWORD': 'Jobs@9922',
-            'HOST': 'localhost',
+            'HOST': 'https://backend-82om.onrender.com',
             'PORT': '5432',
         }
     }
@@ -230,4 +230,4 @@ SERVER_EMAIL = EMAIL_HOST_USER
 # ------------------------------------------------------------------------------
 # SITE
 # ------------------------------------------------------------------------------
-SITE_URL = os.getenv("SITE_URL", "http://localhost:3000")
+SITE_URL = os.getenv("SITE_URL", "https://backend-82om.onrender.com")
