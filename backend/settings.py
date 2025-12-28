@@ -19,10 +19,7 @@ DEBUG = ENV != "production"
 # ------------------------------------------------------------------------------
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-insecure-key")
 
-ALLOWED_HOSTS = os.getenv(
-    "ALLOWED_HOSTS",
-    ".onrender.com,localhost,127.0.0.1"
-).split(",")
+ALLOWED_HOSTS = ["*"]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://*.onrender.com",
