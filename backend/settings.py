@@ -1,18 +1,45 @@
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import dj_database_url
 
-# Load environment variables from .env file
+# Load environment variables
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-i6d_rie3kiu-&57uek^!*(gsj#busu!k!ib(k-se1tdp#2$-k!'
+# ------------------------------------------------------------------------------
+# ENVIRONMENT
+# ------------------------------------------------------------------------------
+ENV = os.getenv("DJANGO_ENV", "development")
+DEBUG = ENV != "production"
 
-DEBUG = True
+# ------------------------------------------------------------------------------
+# SECURITY
+# ------------------------------------------------------------------------------
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-insecure-key")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv(
+    "ALLOWED_HOSTS",
+    ".onrender.com,localhost,127.0.0.1"
+).split(",")
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.onrender.com",
+]
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_SSL_REDIRECT = ENV == "production"
+SESSION_COOKIE_SECURE = ENV == "production"
+CSRF_COOKIE_SECURE = ENV == "production"
+
+SECURE_HSTS_SECONDS = 31536000 if ENV == "production" else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = ENV == "production"
+SECURE_HSTS_PRELOAD = ENV == "production"
+
+# ------------------------------------------------------------------------------
+# APPLICATIONS
+# ------------------------------------------------------------------------------
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -20,30 +47,38 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
     'django_filters',
+
     'apps.accounts',
     'apps.fulltours',
-	'apps.holidaypackages',
-	'apps.tours',
+    'apps.holidaypackages',
+    'apps.tours',
     'apps.cars',
     'apps.campervans',
     'apps.hotels',
     'apps.guided_trips',
     'apps.pilgrim',
-	'apps.bikes',
+    'apps.bikes',
     'apps.stories',
     'apps.bookings',
     'apps.insights',
-	'ckeditor',
-    'ckeditor_uploader',  # if you want image uploads
+
+    'ckeditor',
+    'ckeditor_uploader',
 ]
 
+# ------------------------------------------------------------------------------
+# MIDDLEWARE
+# ------------------------------------------------------------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -52,8 +87,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# ------------------------------------------------------------------------------
 ROOT_URLCONF = 'backend.urls'
+WSGI_APPLICATION = 'backend.wsgi.application'
 
+# ------------------------------------------------------------------------------
+# TEMPLATES
+# ------------------------------------------------------------------------------
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -70,92 +110,87 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'backend.wsgi.application'
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'travellerclicksfinal1',
-		'USER': 'postgres',
-        'PASSWORD': 'Jobs@9922',
-        'HOST': 'localhost',
-        'PORT': '5432',
+# ------------------------------------------------------------------------------
+# DATABASE
+# ------------------------------------------------------------------------------
+if ENV == "production":
+    DATABASES = {
+        "default": dj_database_url.config(
+            conn_max_age=600,
+            ssl_require=True,
+        )
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'travellerclicksfinal1',
+            'USER': 'postgres',
+            'PASSWORD': 'Jobs@9922',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
+    }
 
-# Caching Configuration for Performance
+# ------------------------------------------------------------------------------
+# CACHE
+# ------------------------------------------------------------------------------
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
-        'TIMEOUT': 300,  # 5 minutes default
-        'OPTIONS': {
-            'MAX_ENTRIES': 1000,
-            'CULL_FREQUENCY': 3,
-        }
+        'LOCATION': 'traveller-clicks',
+        'TIMEOUT': 300,
     }
 }
 
+# ------------------------------------------------------------------------------
+# AUTH
+# ------------------------------------------------------------------------------
+AUTH_USER_MODEL = 'accounts.User'
+
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# ------------------------------------------------------------------------------
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
+# ------------------------------------------------------------------------------
+# STATIC & MEDIA
+# ------------------------------------------------------------------------------
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# ------------------------------------------------------------------------------
+# CKEDITOR
+# ------------------------------------------------------------------------------
 CKEDITOR_UPLOAD_PATH = "uploads/"
 CKEDITOR_ALLOW_NONIMAGE_FILES = False
+
 CKEDITOR_CONFIGS = {
     'default': {
-        'toolbar': [
-            {'name': 'basicstyles', 'items': [
-                'Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat']},
-            {'name': 'paragraph', 'items': [
-                'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote']},
-            {'name': 'insert', 'items': [
-                'Image', 'Table', 'Link', 'Unlink', 'Anchor']},
-            {'name': 'styles', 'items': [
-                'Format', 'Font', 'FontSize', 'TextColor', 'BGColor']},
-            {'name': 'document', 'items': ['Source']}
-        ],
+        'toolbar': 'full',
         'height': 300,
         'width': '100%',
-        'toolbarCanCollapse': True,
-        'tabSpaces': 4,
     }
 }
 
-
+# ------------------------------------------------------------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Custom User Model
-AUTH_USER_MODEL = 'accounts.User'
-
-# DRF Configuration
+# ------------------------------------------------------------------------------
+# DJANGO REST FRAMEWORK
+# ------------------------------------------------------------------------------
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
@@ -164,54 +199,37 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',
-        'rest_framework.filters.SearchFilter',
-        'rest_framework.filters.OrderingFilter',
-    ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
 }
 
-# CORS Configuration
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:3001",
-    "http://127.0.0.1:3001",
-    "http://localhost:3002",
-    "http://127.0.0.1:3002",
-]
-
+# ------------------------------------------------------------------------------
+# CORS
+# ------------------------------------------------------------------------------
 CORS_ALLOW_CREDENTIALS = True
 
-# Additional CORS settings for development
-CORS_ALLOW_ALL_ORIGINS = True  # Only for development
-CORS_ALLOWED_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-]
+if ENV == "production":
+    CORS_ALLOWED_ORIGINS = os.getenv(
+        "CORS_ALLOWED_ORIGINS",
+        ""
+    ).split(",")
+else:
+    CORS_ALLOW_ALL_ORIGINS = True
 
-# Email Configuration
-# Gmail SMTP settings
+# ------------------------------------------------------------------------------
+# EMAIL
+# ------------------------------------------------------------------------------
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'santukmr555@gmail.com')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', 'yjwc dtsy wtfz sjdd')
-
-# For console testing (uncomment to disable real emails):
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 DEFAULT_FROM_EMAIL = f'TravellerClicks <{EMAIL_HOST_USER}>'
 SERVER_EMAIL = EMAIL_HOST_USER
 
-# Site configuration for email links
-SITE_URL = 'http://localhost:3000'  # Update this for production
+# ------------------------------------------------------------------------------
+# SITE
+# ------------------------------------------------------------------------------
+SITE_URL = os.getenv("SITE_URL", "http://localhost:3000")
